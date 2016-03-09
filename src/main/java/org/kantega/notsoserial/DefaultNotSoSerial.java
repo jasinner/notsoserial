@@ -46,6 +46,7 @@ public class DefaultNotSoSerial implements NotSoSerial {
         blacklist.add(internalName("org.codehaus.groovy.runtime.MethodClosure"));
         blacklist.add(internalName("org.springframework.beans.factory.ObjectFactory"));
         blacklist.add(internalName("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl"));
+        blacklist.add(internalName("java.rmi.server.UnicastRemoteObject"));
 
         String blacklistProperty = System.getProperty("notsoserial.blacklist");
         if(blacklistProperty != null) {
@@ -81,7 +82,7 @@ public class DefaultNotSoSerial implements NotSoSerial {
     private PrintWriter openWriter(String path) {
         File file = new File(path);
         try {
-             return new PrintWriter(new FileWriter(file));
+             return new PrintWriter(new FileWriter(file, true));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -168,6 +169,7 @@ public class DefaultNotSoSerial implements NotSoSerial {
                         foundReadObject = true;
                     }
                 }
+                traceWriter.flush();
             }
         }
     }
