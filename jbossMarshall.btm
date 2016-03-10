@@ -1,0 +1,10 @@
+RULE notsoserial jboss marshalling
+INTERFACE org.jboss.marshalling.ClassResolver
+METHOD resolveClass
+HELPER org.kantega.notsoserial.DefaultNotSoSerial
+BIND name:String = $2
+AT ENTRY
+IF true
+DO onBeforeResolveClass($2, $0.getClass())
+ENDRULE
+

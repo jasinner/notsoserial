@@ -31,11 +31,12 @@ public class CustomNotSoSerial implements NotSoSerial {
         instance = this;
     }
 
-    public void onBeforeResolveClass(String className) {
-        resolvedClasses.add(className);
-    }
-
     public Set<String> getResolvedClasses() {
         return resolvedClasses;
+    }
+
+    public void onBeforeResolveClass(String className) {
+        resolvedClasses.add(className);
+        
     }
 }

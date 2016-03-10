@@ -1,0 +1,9 @@
+RULE notsoserial java marshalling
+CLASS ObjectInputStream
+METHOD resolveClass
+HELPER org.kantega.notsoserial.DefaultNotSoSerial
+BIND objectStreamClass:ObjectStreamClass = $1
+AT ENTRY
+IF true
+DO onBeforeResolveClass($1.getName(), $0.getClass())
+ENDRULE

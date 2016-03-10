@@ -22,10 +22,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+import org.jboss.byteman.rule.Rule;
+import org.jboss.byteman.rule.helper.Helper;
+
 /**
  *
  */
-public class DefaultNotSoSerial implements NotSoSerial {
+public class DefaultNotSoSerial extends Helper implements NotSoSerial {
 
     private final Set<String> blacklist = new HashSet<String>();
 
@@ -37,7 +40,8 @@ public class DefaultNotSoSerial implements NotSoSerial {
 
     private Set<String> deserializingClasses = new ConcurrentSkipListSet<String>();
 
-    public DefaultNotSoSerial() {
+    public DefaultNotSoSerial(Rule rule) {
+        super(rule);
         blacklist.add(internalName("org.apache.commons.collections.functors.InvokerTransformer"));
         blacklist.add(internalName("org.apache.commons.collections4.functors.InvokerTransformer"));
         blacklist.add(internalName("org.apache.commons.collections.functors.InstantiateTransformer"));
@@ -66,6 +70,7 @@ public class DefaultNotSoSerial implements NotSoSerial {
             }
 
             whiteList = readClassesFromFile(whiteListFile);
+            deserializingClasses.addAll(whiteList);
         }
 
         String dryRunPath = System.getProperty("notsoserial.dryrun");
@@ -153,21 +158,16 @@ public class DefaultNotSoSerial implements NotSoSerial {
     }
 
     private void registerDeserialization(String className) {
-        if(!deserializingClasses.contains(className)) {
-            deserializingClasses.add(className);
+        if(!deserializingClasses.contains(internalName(className))) {
+            deserializingClasses.add(internalName(className));
             String prettyName = className.replace('/', '.');
             dryRunWriter.println(prettyName);
             dryRunWriter.flush();
             if(traceWriter != null) {
                 traceWriter.println("Deserialization of class " + prettyName +" (on " + new Date().toString() +")");
-                boolean foundReadObject = false;
+                boolean foundResolveClass = false;
                 for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
-                    if(foundReadObject) {
-                        traceWriter.println("\t at " + element.getClassName() +"." + element.getMethodName());
-                    } else if (element.getClassName().equals(ObjectInputStream.class.getName())
-                            && element.getMethodName().equals("readObject")) {
-                        foundReadObject = true;
-                    }
+                    traceWriter.println("\t at " + element.getClassName() +"." + element.getMethodName());
                 }
                 traceWriter.flush();
             }
